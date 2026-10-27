@@ -1,0 +1,86 @@
+# Yemekhane Otomasyonu - altyapı
+# Servisler: frontend (Apache), mysql-primary (yazma), mysql-replica (okuma), replica-setup (tek seferlik), redis
+# Uygulama servisi Aşama 2'de en alta eklenecek.
+
+x-mysql-env: &mysql-env
+  MYSQL_ROOT_PASSWORD: root_sifre
+  MYSQL_DATABASE: yemekhane
+  MYSQL_USER: uygulama
+  MYSQL_PASSWORD: uygulama_sifre
+  TZ: Europe/Istanbul
+
+services:
+  frontend:
+    image: httpd:2.4
+    ports:
+      - "8080:80"
+    volumes:
+      - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - ./frontend:/usr/local/apache2/htdocs:ro
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/80"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mysql-primary:
+    image: mysql:8.0
+    environment: *mysql-env
+    ports:
+      - "3307:3306"
+    volumes:
+      - primary-data:/var/lib/mysql
+      - ./db/primary.cnf:/etc/mysql/conf.d/primary.cnf:ro
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  mysql-replica:
+    image: mysql:8.0
+    environment: *mysql-env
+    ports:
+      - "3308:3306"
+    volumes:
+      - replica-data:/var/lib/mysql
+      - ./db/replica.cnf:/etc/mysql/conf.d/replica.cnf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  replica-setup:
+    image: mysql:8.0
+    depends_on:
+      mysql-primary:
+        condition: service_healthy
+      mysql-replica:
+        condition: service_healthy
+    environment: *mysql-env
+    volumes:
+      - ./db/replica-setup.sh:/replica-setup.sh:ro
+    entrypoint: ["bash", "/replica-setup.sh"]
+    restart: "no"
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  primary-data:
+  replica-data:
+  redis-data:

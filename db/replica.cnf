@@ -1,0 +1,9 @@
+[mysqld]
+server-id=2
+log-bin=mysql-bin
+relay-log=relay-bin
+log_replica_updates=ON
+gtid_mode=ON
+enforce_gtid_consistency=ON
+character-set-server=utf8mb4
+default-time-zone='+03:00'
