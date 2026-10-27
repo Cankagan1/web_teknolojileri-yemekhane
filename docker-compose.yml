@@ -25,12 +25,19 @@ services:
 
   mysql-primary:
     image: mysql:8.0
+    command:
+      - --server-id=1
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --character-set-server=utf8mb4
+      - --default-time-zone=+03:00
     environment: *mysql-env
     ports:
       - "3307:3306"
     volumes:
       - primary-data:/var/lib/mysql
-      - ./db/primary.cnf:/etc/mysql/conf.d/primary.cnf:ro
       - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
@@ -41,12 +48,20 @@ services:
 
   mysql-replica:
     image: mysql:8.0
+    command:
+      - --server-id=2
+      - --log-bin=mysql-bin
+      - --relay-log=relay-bin
+      - --log-replica-updates=ON
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --character-set-server=utf8mb4
+      - --default-time-zone=+03:00
     environment: *mysql-env
     ports:
       - "3308:3306"
     volumes:
       - replica-data:/var/lib/mysql
-      - ./db/replica.cnf:/etc/mysql/conf.d/replica.cnf:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 5s
