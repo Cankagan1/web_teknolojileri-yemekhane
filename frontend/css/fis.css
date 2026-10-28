@@ -84,3 +84,18 @@ input:focus { outline: none; background: rgba(0, 0, 0, .04); }
 .ust-serit { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .9rem; }
 .ust-serit .dugme { padding: 6px 10px; font-size: .75rem; }
 .soluk { color: var(--soluk); }
+
+/* ---- gezinme ve haftalık görünüm ---- */
+.gezinme { display: flex; gap: 6px; margin: 10px 0 4px; }
+.gezinme a {
+  flex: 1; text-align: center; padding: 8px; text-decoration: none; color: var(--murekkep);
+  border: 2px solid var(--murekkep); text-transform: uppercase; letter-spacing: .1em; font-size: .85rem;
+}
+.gezinme a[aria-current="page"] { background: var(--murekkep); color: var(--kagit); }
+.kucuk { font-size: .8rem; }
+.gun-baslik { text-transform: capitalize; }
+.menu-satiri { padding: 10px 0; border-bottom: 2px dashed var(--cizgi); }
+.menu-satiri:last-child { border-bottom: 0; padding-bottom: 0; }
+.menu-satiri .dugme { padding: 7px 10px; font-size: .8rem; }
+.hafta-gezinti { display: flex; justify-content: space-between; gap: 8px; margin: 8px 0; }
+.hafta-gezinti .dugme { padding: 7px 10px; font-size: .8rem; }

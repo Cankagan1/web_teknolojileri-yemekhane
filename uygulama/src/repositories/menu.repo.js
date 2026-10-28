@@ -41,4 +41,22 @@ async function menuYemekleri(menuId) {
   return s;
 }
 
-module.exports = { yemekhaneleriGetir, ogunleriGetir, menuBul, menuYemekleri };
+// Bir yemekhanenin 7 günlük menüleri: başlık view'ı + doluluk view'ı, replikadan.
+// "gecti": son rezervasyon saati geçti mi (sunucu saatiyle hesaplanır, tarayıcı saatine güvenilmez)
+async function haftalikMenuler(yemekhaneId, baslangic) {
+  const [s] = await okuma.query(
+    `SELECT d.menu_id AS menuId, d.tarih, d.ogun_id AS ogunId, d.ogun_ad AS ogun,
+            d.son_rezervasyon_saati AS sonSaat, d.ogrenci_fiyat AS ogrenciFiyat, d.personel_fiyat AS personelFiyat,
+            d.toplam_kalori AS toplamKalori, d.vejetaryen_mi AS vejetaryen, d.yemekler, d.alerjenler,
+            o.bos, o.kapasite,
+            (TIMESTAMP(d.tarih, d.son_rezervasyon_saati) <= NOW()) AS gecti
+       FROM v_menu_detay d
+       JOIN v_menu_doluluk o ON o.menu_id = d.menu_id
+      WHERE d.yemekhane_id = ? AND d.tarih BETWEEN ? AND DATE_ADD(?, INTERVAL 6 DAY)
+      ORDER BY d.tarih, d.ogun_id`,
+    [yemekhaneId, baslangic, baslangic]
+  );
+  return s;
+}
+
+module.exports = { yemekhaneleriGetir, ogunleriGetir, menuBul, menuYemekleri, haftalikMenuler };

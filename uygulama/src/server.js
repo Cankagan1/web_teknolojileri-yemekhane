@@ -10,6 +10,7 @@ app.use(cookieParser());
 app.get('/api/saglik', (req, res) => res.json({ durum: 'ok' }));
 app.use('/api', require('./routes/auth.routes'));
 app.use('/api/menu', require('./routes/menu.routes'));
+app.use('/api/rezervasyon', require('./routes/rezervasyon.routes'));
 app.use('/api', (req, res) => res.status(404).json({ hata: 'Bulunamadı.' }));
 app.use(hataIsleyici);
 

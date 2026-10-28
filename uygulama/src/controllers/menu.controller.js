@@ -1,4 +1,5 @@
 const repo = require('../repositories/menu.repo');
+const rezRepo = require('../repositories/rezervasyon.repo');
 const { UygulamaHatasi, sarmala } = require('../errors');
 
 // Bugünün tarihi İstanbul saatiyle: "2026-10-27"
@@ -37,4 +38,44 @@ const gununMenusu = sarmala(async (req, res) => {
   });
 });
 
-module.exports = { referans, gununMenusu };
+// Düğmenin ne göstereceğine sunucu karar verir; arayüz yalnızca gösterir.
+function eylemBelirle(menu, rez) {
+  if (rez && rez.durum === 'aktif') return 'rezerve';
+  if (rez && rez.durum === 'kullanildi') return 'kullanildi';
+  if (menu.gecti) return 'sure_doldu';
+  if (menu.bos <= 0) return 'dolu';
+  return 'rezerve_et';
+}
+
+const haftalik = sarmala(async (req, res) => {
+  const yemekhaneId = Number(req.query.yemekhane);
+  const baslangic = req.query.baslangic || bugun();
+  if (!Number.isInteger(yemekhaneId)) throw new UygulamaHatasi('Yemekhane seçmelisiniz.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(baslangic)) throw new UygulamaHatasi('Tarih biçimi YYYY-AA-GG olmalı.');
+
+  const menuler = await repo.haftalikMenuler(yemekhaneId, baslangic);
+  const rezervasyonlar = await rezRepo.kullanicininRezervasyonlari(req.kullanici.id, menuler.map((m) => m.menuId));
+  const rezHaritasi = new Map(rezervasyonlar.map((r) => [r.menuId, r]));
+
+  // günlere grupla
+  const gunler = [];
+  for (const m of menuler) {
+    const rez = rezHaritasi.get(m.menuId) || null;
+    const kayit = {
+      ...m,
+      gecti: !!m.gecti,
+      vejetaryen: !!m.vejetaryen,
+      fiyat: req.kullanici.rol === 'ogrenci' ? m.ogrenciFiyat : m.personelFiyat,
+      eylem: eylemBelirle(m, rez),
+    };
+    let gun = gunler[gunler.length - 1];
+    if (!gun || gun.tarih !== m.tarih) {
+      gun = { tarih: m.tarih, menuler: [] };
+      gunler.push(gun);
+    }
+    gun.menuler.push(kayit);
+  }
+  res.json({ baslangic, gunler });
+});
+
+module.exports = { referans, gununMenusu, haftalik };

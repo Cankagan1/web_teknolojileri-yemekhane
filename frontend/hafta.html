@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yemekhane · Haftalık menü</title>
+<link rel="stylesheet" href="css/fis.css">
+</head>
+<body>
+<main class="kap">
+  <div class="ust-serit">
+    <span id="kullanici" class="soluk"></span>
+    <button id="cikis" class="dugme ikincil" type="button">Çıkış</button>
+  </div>
+
+  <nav class="gezinme">
+    <a href="menu.html">Bugün</a>
+    <a href="hafta.html" aria-current="page">Hafta</a>
+  </nav>
+
+  <div class="sekmeler" id="yemekhane-sekmeleri" role="group" aria-label="Yemekhane"></div>
+  <div class="hafta-gezinti">
+    <button id="onceki" class="dugme ikincil" type="button">&larr; Önceki 7 gün</button>
+    <button id="sonraki" class="dugme ikincil" type="button">Sonraki 7 gün &rarr;</button>
+  </div>
+  <p id="uyari" class="hata" role="alert"></p>
+
+  <div id="gunler"></div>
+</main>
+<script src="js/api.js"></script>
+<script src="js/hafta.js"></script>
+</body>
+</html>
