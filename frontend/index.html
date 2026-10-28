@@ -3,10 +3,47 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Yemekhane</title>
+<title>Yemekhane · Giriş</title>
+<link rel="stylesheet" href="css/fis.css">
 </head>
 <body>
-<h1>Yemekhane ayakta</h1>
-<p>Altyapı çalışıyor. Arayüz Aşama 2'de gelecek.</p>
+<main class="kap">
+  <section class="fis">
+    <h1 class="baslik">Kampüs Yemekhane</h1>
+    <p class="alt-baslik">Giriş sayfası</p>
+    <hr class="kesik">
+    <form id="giris-formu">
+      <label for="email">E-posta</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="sifre">Şifre</label>
+      <input id="sifre" type="password" autocomplete="current-password" required>
+      <p id="hata" class="hata" role="alert"></p>
+      <button class="dugme tam" type="submit">Giriş yap</button>
+    </form>
+  </section>
+</main>
+<script src="js/api.js"></script>
+<script>
+  // zaten girişliyse doğrudan menüye geç
+  api('/ben').then(() => { location.href = 'menu.html'; }).catch(() => {});
+
+  document.getElementById('giris-formu').addEventListener('submit', async (olay) => {
+    olay.preventDefault();
+    const hata = document.getElementById('hata');
+    hata.textContent = '';
+    try {
+      await api('/giris', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: document.getElementById('email').value,
+          sifre: document.getElementById('sifre').value,
+        }),
+      });
+      location.href = 'menu.html';
+    } catch (e) {
+      hata.textContent = e.message;
+    }
+  });
+</script>
 </body>
 </html>

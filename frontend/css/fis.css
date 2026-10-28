@@ -1,0 +1,86 @@
+/* "Fiş / Kupon" teması: krem kağıt, daktilo yazısı, delikli kenarlar, kırmızı damga */
+:root {
+  --arka: #d8ceb2;
+  --kagit: #f7f0dd;
+  --murekkep: #2b2a26;
+  --soluk: #7a7260;
+  --cizgi: #c6b88f;
+  --kirmizi: #b3382c;
+  --yesil: #2f6b4f;
+}
+* { box-sizing: border-box; }
+html { background: var(--arka); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Courier New", Courier, monospace;
+  color: var(--murekkep);
+  line-height: 1.45;
+}
+.kap { max-width: 440px; margin: 0 auto; padding: 20px 14px 40px; }
+
+/* ---- fiş kartı: alt ve üst kenarda delikler ---- */
+.fis {
+  position: relative;
+  background: var(--kagit);
+  padding: 24px 18px;
+  margin: 18px 0;
+  box-shadow: 0 10px 22px rgba(70, 50, 15, .18);
+}
+.fis::before, .fis::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  height: 12px;
+  background-size: 16px 12px;
+  background-repeat: repeat-x;
+}
+.fis::before { top: -6px;    background-image: radial-gradient(circle at 8px 0,    var(--arka) 6px, transparent 6.5px); }
+.fis::after  { bottom: -6px; background-image: radial-gradient(circle at 8px 12px, var(--arka) 6px, transparent 6.5px); }
+
+.baslik { text-align: center; margin: 0; font-size: 1.15rem; letter-spacing: .18em; text-transform: uppercase; }
+.alt-baslik { text-align: center; color: var(--soluk); font-size: .85rem; margin: 4px 0 0; }
+.kesik { border: 0; border-top: 2px dashed var(--cizgi); margin: 16px 0; }
+
+/* ---- satırlar ---- */
+.kategori { font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--soluk); margin: 14px 0 2px; }
+.satir { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px dotted var(--cizgi); }
+.satir .sag { white-space: nowrap; color: var(--soluk); }
+.toplam { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.05rem; }
+
+/* ---- etiketler ve damga ---- */
+.etiket {
+  display: inline-block; margin: 2px 4px 2px 0; padding: 1px 7px;
+  border: 1px solid var(--kirmizi); color: var(--kirmizi); font-size: .75rem;
+}
+.etiket.yesil { border-color: var(--yesil); color: var(--yesil); }
+.damga {
+  display: inline-block; padding: 2px 10px; transform: rotate(-5deg);
+  border: 3px double var(--yesil); color: var(--yesil);
+  font-weight: bold; letter-spacing: .12em; text-transform: uppercase;
+}
+.damga.kirmizi { border-color: var(--kirmizi); color: var(--kirmizi); }
+
+/* ---- form ve düğmeler ---- */
+label { display: block; margin: 12px 0 4px; font-size: .85rem; text-transform: uppercase; letter-spacing: .08em; }
+input {
+  width: 100%; padding: 10px; font: inherit; color: inherit;
+  background: transparent; border: 0; border-bottom: 2px solid var(--murekkep); border-radius: 0;
+}
+input:focus { outline: none; background: rgba(0, 0, 0, .04); }
+.dugme {
+  font: inherit; cursor: pointer; padding: 11px 16px; border: 2px solid var(--murekkep);
+  background: var(--murekkep); color: var(--kagit); text-transform: uppercase; letter-spacing: .1em;
+}
+.dugme.tam { width: 100%; margin-top: 18px; }
+.dugme.ikincil { background: transparent; color: var(--murekkep); }
+.dugme[aria-pressed="true"] { background: var(--kirmizi); border-color: var(--kirmizi); color: var(--kagit); }
+.dugme:disabled { opacity: .45; cursor: not-allowed; }
+
+.sekmeler { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.sekmeler .dugme { padding: 7px 12px; font-size: .85rem; }
+
+.hata { color: var(--kirmizi); margin: 12px 0 0; min-height: 1.4em; }
+.ust-serit { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .9rem; }
+.ust-serit .dugme { padding: 6px 10px; font-size: .75rem; }
+.soluk { color: var(--soluk); }

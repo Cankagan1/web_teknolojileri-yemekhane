@@ -1,23 +1,22 @@
 # Yemekhane Otomasyonu
 
 ## Çalıştırma
-    docker compose up -d
+    docker compose up -d --build
     docker compose ps          # hepsi healthy, replica-setup Exited (0)
 
-Sıfırdan başlamak için (veritabanı init dosyaları yalnızca boş volume'da çalışır):
+Sıfırdan başlamak için: `docker compose down -v && docker compose up -d --build`
 
-    docker compose down -v && docker compose up -d
+## Adresler
+| Servis | Adres |
+|---|---|
+| Arayüz | http://localhost:8080 |
+| mysql-primary (yazma) | localhost:3307 · kullanıcı uygulama / uygulama_sifre · veritabanı yemekhane |
+| mysql-replica (okuma) | localhost:3308 · aynı bilgiler |
+| redis | localhost:6379 |
 
-## Bağlantı bilgileri
-| Servis | Adres | Kullanıcı / şifre |
-|---|---|---|
-| Arayüz (Apache) | http://localhost:8080 | - |
-| mysql-primary (yazma) | localhost:3307, veritabanı `yemekhane` | uygulama / uygulama_sifre (root / root_sifre) |
-| mysql-replica (okuma) | localhost:3308 | aynı |
-| redis | localhost:6379 | şifresiz |
+## Deneme kullanıcıları (şifre hepsinde `Sifre123!`)
+yonetici@kampus.edu.tr · personel1@kampus.edu.tr · ogrenci01@kampus.edu.tr ... ogrenci25@kampus.edu.tr
 
-Uygulama kullanıcıları (şifre hepsinde `Sifre123!`):
-yonetici@kampus.edu.tr, personel1@kampus.edu.tr, ogrenci01@kampus.edu.tr ... ogrenci25@kampus.edu.tr
-
-## Doğrulama
-    bash scripts/dogrula.sh | tee rapor/asama1_cikti.txt
+## Mimari (Web API + arayüz)
+route → controller → repository (SQL yalnızca repository'de). Para işlemleri stored procedure ile.
+Yazma ve para hareketleri `mysql-primary`, listeleme `mysql-replica`.

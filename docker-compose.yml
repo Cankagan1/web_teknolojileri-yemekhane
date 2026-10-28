@@ -1,6 +1,6 @@
 # Yemekhane Otomasyonu - altyapı
-# Servisler: frontend (Apache), mysql-primary (yazma), mysql-replica (okuma), replica-setup (tek seferlik), redis
-# Uygulama servisi Aşama 2'de en alta eklenecek.
+# Servisler: frontend (Apache), uygulama (Express API), mysql-primary (yazma), mysql-replica (okuma),
+# replica-setup (tek seferlik), redis
 
 x-mysql-env: &mysql-env
   MYSQL_ROOT_PASSWORD: root_sifre
@@ -12,6 +12,9 @@ x-mysql-env: &mysql-env
 services:
   frontend:
     image: httpd:2.4
+    depends_on:
+      uygulama:
+        condition: service_healthy
     ports:
       - "8080:80"
     volumes:
@@ -22,6 +25,32 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  uygulama:
+    build: ./uygulama
+    depends_on:
+      mysql-primary:
+        condition: service_healthy
+      mysql-replica:
+        condition: service_healthy
+      replica-setup:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    environment:
+      TZ: Europe/Istanbul
+      DB_PRIMARY_HOST: mysql-primary
+      DB_REPLICA_HOST: mysql-replica
+      DB_USER: uygulama
+      DB_PASSWORD: uygulama_sifre
+      DB_NAME: yemekhane
+      REDIS_HOST: redis
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/saglik"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
 
   mysql-primary:
     image: mysql:8.0

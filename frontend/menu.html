@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yemekhane · Günün menüsü</title>
+<link rel="stylesheet" href="css/fis.css">
+</head>
+<body>
+<main class="kap">
+  <div class="ust-serit">
+    <span id="kullanici" class="soluk"></span>
+    <button id="cikis" class="dugme ikincil" type="button">Çıkış</button>
+  </div>
+
+  <div class="sekmeler" id="yemekhane-sekmeleri" role="group" aria-label="Yemekhane"></div>
+  <div class="sekmeler" id="ogun-sekmeleri" role="group" aria-label="Öğün"></div>
+
+  <section class="fis" id="fis" aria-live="polite"></section>
+</main>
+<script src="js/api.js"></script>
+<script src="js/menu.js"></script>
+</body>
+</html>

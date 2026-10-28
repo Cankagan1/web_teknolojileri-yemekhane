@@ -1,0 +1,40 @@
+const repo = require('../repositories/menu.repo');
+const { UygulamaHatasi, sarmala } = require('../errors');
+
+// Bugünün tarihi İstanbul saatiyle: "2026-10-27"
+function bugun() {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
+}
+
+const referans = sarmala(async (req, res) => {
+  const [yemekhaneler, ogunler] = await Promise.all([repo.yemekhaneleriGetir(), repo.ogunleriGetir()]);
+  res.json({ yemekhaneler, ogunler, bugun: bugun() });
+});
+
+const gununMenusu = sarmala(async (req, res) => {
+  const yemekhaneId = Number(req.query.yemekhane);
+  const ogunId = Number(req.query.ogun);
+  const tarih = req.query.tarih || bugun();
+  if (!Number.isInteger(yemekhaneId) || !Number.isInteger(ogunId)) {
+    throw new UygulamaHatasi('Yemekhane ve öğün seçmelisiniz.');
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(tarih)) throw new UygulamaHatasi('Tarih biçimi YYYY-AA-GG olmalı.');
+
+  const menu = await repo.menuBul(yemekhaneId, tarih, ogunId);
+  if (!menu) throw new UygulamaHatasi('Bu öğün için menü bulunamadı.', 404);
+
+  const yemekler = (await repo.menuYemekleri(menu.menuId)).map((y) => ({
+    ...y,
+    vejetaryen: !!y.vejetaryen,
+    alerjenler: y.alerjenler ? y.alerjenler.split(',') : [],
+  }));
+
+  // fiyat, kullanıcının rolüne göre seçilir
+  const fiyat = req.kullanici.rol === 'ogrenci' ? menu.ogrenciFiyat : menu.personelFiyat;
+  res.json({
+    menu: { ...menu, vejetaryen: !!menu.vejetaryen, alerjenler: menu.alerjenler ? menu.alerjenler.split(', ') : [], fiyat },
+    yemekler,
+  });
+});
+
+module.exports = { referans, gununMenusu };
