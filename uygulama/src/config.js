@@ -8,5 +8,6 @@ module.exports = {
     primaryHost: process.env.DB_PRIMARY_HOST, // yazma
     replicaHost: process.env.DB_REPLICA_HOST, // okuma
   },
+  redis: { host: process.env.REDIS_HOST, port: 6379 },
   oturumSuresiMs: 30 * 60 * 1000,
 };

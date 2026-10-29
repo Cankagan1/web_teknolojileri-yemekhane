@@ -92,4 +92,12 @@ async function guncelle(menuId, m) {
   }
 }
 
-module.exports = { menuRaporu, tumYemekler, menuGetir, olustur, guncelle };
+// Kaynaktaki son değişikliğin replikaya ulaşmasını bekler (GTID ile).
+// Önbellek, replika eski veriyi tutarken silinirse eski menü yeniden önbelleğe girer; bunu önler.
+async function replikaBekle(sureSn = 5) {
+  const [g] = await yazma.query('SELECT @@GLOBAL.gtid_executed AS gtid');
+  const [s] = await okuma.query('SELECT WAIT_FOR_EXECUTED_GTID_SET(?, ?) AS sonuc', [g[0].gtid, sureSn]);
+  if (s[0].sonuc !== 0) console.warn('[UYARI] Replika zaman aşımı içinde yetişemedi');
+}
+
+module.exports = { menuRaporu, tumYemekler, menuGetir, olustur, guncelle, replikaBekle };

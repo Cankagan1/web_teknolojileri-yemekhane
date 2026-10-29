@@ -2,6 +2,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const { port } = require('./config');
 const { hataIsleyici } = require('./errors');
+const redis = require('./redis');
 
 const app = express();
 app.use(express.json());
@@ -17,4 +18,6 @@ app.use('/api/yonetim', require('./routes/yonetim.routes'));
 app.use('/api', (req, res) => res.status(404).json({ hata: 'Bulunamadı.' }));
 app.use(hataIsleyici);
 
-app.listen(port, () => console.log(`Uygulama ${port} portunda çalışıyor`));
+redis.connect().then(() => {
+  app.listen(port, () => console.log(`Uygulama ${port} portunda çalışıyor (Redis bağlı)`));
+});

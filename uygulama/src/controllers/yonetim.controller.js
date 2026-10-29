@@ -60,6 +60,7 @@ const olustur = sarmala(async (req, res) => {
   if (b.tarih < bugun()) throw new UygulamaHatasi('Geçmiş bir tarihe menü eklenemez.');
 
   const menuId = await repo.olustur({ yemekhaneId, ogunId, tarih: b.tarih, ...ortakGirdi(b) });
+  await repo.replikaBekle();
   await onbellek.menuyuSil(yemekhaneId, b.tarih, ogunId);
   res.status(201).json({ menuId });
 });
@@ -72,7 +73,9 @@ const guncelle = sarmala(async (req, res) => {
   if (mevcut.menu.tarih < bugun()) throw new UygulamaHatasi('Geçmiş tarihli menü düzenlenemez.');
 
   await repo.guncelle(id, ortakGirdi(req.body || {}));
-  // Menü değişti: Aşama 3'te Redis'teki eski kayıt burada silinecek
+  // Sıra önemli: kaynağa yaz -> replika yetişsin -> Redis'teki eski kaydı sil.
+  // Tersi olursa replikadan okunan eski menü yeniden önbelleğe girer.
+  await repo.replikaBekle();
   await onbellek.menuyuSil(mevcut.menu.yemekhaneId, mevcut.menu.tarih, mevcut.menu.ogunId);
   res.json({ mesaj: 'Menü güncellendi.' });
 });

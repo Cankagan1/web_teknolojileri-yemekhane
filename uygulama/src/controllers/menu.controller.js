@@ -1,5 +1,6 @@
 const repo = require('../repositories/menu.repo');
 const rezRepo = require('../repositories/rezervasyon.repo');
+const onbellek = require('../onbellek');
 const { UygulamaHatasi, sarmala } = require('../errors');
 
 // Bugünün tarihi İstanbul saatiyle: "2026-10-27"
@@ -12,6 +13,31 @@ const referans = sarmala(async (req, res) => {
   res.json({ yemekhaneler, ogunler, bugun: bugun() });
 });
 
+// Günün menüsü kullanıcıdan bağımsızdır, bu yüzden Redis'te saklanır: menu:{yemekhane}:{tarih}:{ogun}
+async function menuVerisi(yemekhaneId, tarih, ogunId) {
+  const anahtar = onbellek.menuAnahtari(yemekhaneId, tarih, ogunId);
+  const saklanan = await onbellek.menuGetir(yemekhaneId, tarih, ogunId);
+  if (saklanan) {
+    console.log(`[ÖNBELLEK] ${anahtar} Redis'ten geldi`);
+    return saklanan;
+  }
+
+  const menu = await repo.menuBul(yemekhaneId, tarih, ogunId);
+  if (!menu) return null;
+  const yemekler = (await repo.menuYemekleri(menu.menuId)).map((y) => ({
+    ...y,
+    vejetaryen: !!y.vejetaryen,
+    alerjenler: y.alerjenler ? y.alerjenler.split(',') : [],
+  }));
+  const veri = {
+    menu: { ...menu, vejetaryen: !!menu.vejetaryen, alerjenler: menu.alerjenler ? menu.alerjenler.split(', ') : [] },
+    yemekler,
+  };
+  await onbellek.menuYaz(yemekhaneId, tarih, ogunId, veri);
+  console.log(`[ÖNBELLEK] ${anahtar} veritabanından geldi, Redis'e yazıldı`);
+  return veri;
+}
+
 const gununMenusu = sarmala(async (req, res) => {
   const yemekhaneId = Number(req.query.yemekhane);
   const ogunId = Number(req.query.ogun);
@@ -21,21 +47,12 @@ const gununMenusu = sarmala(async (req, res) => {
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(tarih)) throw new UygulamaHatasi('Tarih biçimi YYYY-AA-GG olmalı.');
 
-  const menu = await repo.menuBul(yemekhaneId, tarih, ogunId);
-  if (!menu) throw new UygulamaHatasi('Bu öğün için menü bulunamadı.', 404);
+  const veri = await menuVerisi(yemekhaneId, tarih, ogunId);
+  if (!veri) throw new UygulamaHatasi('Bu öğün için menü bulunamadı.', 404);
 
-  const yemekler = (await repo.menuYemekleri(menu.menuId)).map((y) => ({
-    ...y,
-    vejetaryen: !!y.vejetaryen,
-    alerjenler: y.alerjenler ? y.alerjenler.split(',') : [],
-  }));
-
-  // fiyat, kullanıcının rolüne göre seçilir
-  const fiyat = req.kullanici.rol === 'ogrenci' ? menu.ogrenciFiyat : menu.personelFiyat;
-  res.json({
-    menu: { ...menu, vejetaryen: !!menu.vejetaryen, alerjenler: menu.alerjenler ? menu.alerjenler.split(', ') : [], fiyat },
-    yemekler,
-  });
+  // fiyat, kullanıcının rolüne göre seçilir (önbelleğe girmez, kullanıcıya özeldir)
+  const fiyat = req.kullanici.rol === 'ogrenci' ? veri.menu.ogrenciFiyat : veri.menu.personelFiyat;
+  res.json({ menu: { ...veri.menu, fiyat }, yemekler: veri.yemekler });
 });
 
 // Düğmenin ne göstereceğine sunucu karar verir; arayüz yalnızca gösterir.
