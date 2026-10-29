@@ -99,3 +99,25 @@ input:focus { outline: none; background: rgba(0, 0, 0, .04); }
 .menu-satiri .dugme { padding: 7px 10px; font-size: .8rem; }
 .hafta-gezinti { display: flex; justify-content: space-between; gap: 8px; margin: 8px 0; }
 .hafta-gezinti .dugme { padding: 7px 10px; font-size: .8rem; }
+
+/* ---- fişlerim ve bakiye ---- */
+.gezinme a { font-size: .78rem; letter-spacing: .04em; padding: 8px 2px; }
+.fis.kucuk-fis { padding: 16px 16px; margin: 14px 0; }
+.fis.iptal-fis { opacity: .6; }
+.pozitif { color: var(--yesil); }
+.negatif { color: var(--kirmizi); }
+.buyuk-bakiye { text-align: center; font-size: 2rem; font-weight: bold; margin: 6px 0; }
+.hizli { display: flex; gap: 8px; margin-top: 10px; }
+.hizli .dugme { flex: 1; padding: 8px 4px; font-size: .85rem; }
+
+/* ---- değerlendirme ---- */
+.gezinme a { font-size: .72rem; letter-spacing: 0; }
+.yildizlar { display: flex; gap: 2px; margin: 8px 0; }
+.yildiz { background: none; border: 0; font-size: 1.9rem; line-height: 1; cursor: pointer; color: var(--cizgi); padding: 0 4px; }
+.yildiz.dolu { color: var(--kirmizi); }
+.sabit-yildiz { color: var(--kirmizi); font-size: 1.3rem; letter-spacing: 2px; }
+textarea {
+  width: 100%; min-height: 70px; padding: 8px; font: inherit; color: inherit; resize: vertical;
+  background: rgba(0, 0, 0, .03); border: 1px dashed var(--soluk);
+}
+textarea:focus { outline: none; border-style: solid; }
