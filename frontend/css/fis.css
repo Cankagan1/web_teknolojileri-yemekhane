@@ -121,3 +121,14 @@ textarea {
   background: rgba(0, 0, 0, .03); border: 1px dashed var(--soluk);
 }
 textarea:focus { outline: none; border-style: solid; }
+
+/* ---- yönetim ---- */
+input[type="checkbox"] { width: auto; }
+.onay-satiri { display: flex; gap: 8px; align-items: center; margin: 3px 0; font-size: .88rem; text-transform: none; letter-spacing: 0; }
+.cubuk { height: 10px; border: 1px solid var(--murekkep); margin: 6px 0 2px; }
+.cubuk-ic { height: 100%; background: var(--kirmizi); }
+.bilgi { color: var(--yesil); margin: 8px 0 0; min-height: 1.2em; }
+select { width: 100%; padding: 9px; font: inherit; color: inherit; background: transparent; border: 0; border-bottom: 2px solid var(--murekkep); border-radius: 0; }
+.cift-sutun { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.eylemler { display: flex; gap: 8px; margin-top: 16px; }
+.eylemler .dugme { flex: 1; }

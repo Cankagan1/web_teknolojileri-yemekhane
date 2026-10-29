@@ -28,15 +28,20 @@ function el(etiket, ozellikler = {}, ...cocuklar) {
 
 const TL = (n) => Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL';
 
-// Ortak gezinme çubuğu: sayfada <nav id="gezinme"> varsa doldurulur.
+// Ortak gezinme çubuğu: sayfada <nav id="gezinme"> varsa doldurulur. "Yönetim" yalnızca yöneticide görünür.
 document.addEventListener('DOMContentLoaded', () => {
   const nav = document.getElementById('gezinme');
   if (!nav) return;
-  const sayfalar = [['menu.html', 'Bugün'], ['hafta.html', 'Hafta'], ['rezervasyonlarim.html', 'Fişlerim'], ['bakiye.html', 'Bakiye'], ['degerlendirme.html', 'Puanla']];
+  const sayfalar = [['menu.html', 'Bugün'], ['hafta.html', 'Hafta'], ['rezervasyonlarim.html', 'Fişlerim'],
+                    ['bakiye.html', 'Bakiye'], ['degerlendirme.html', 'Puanla']];
   const aktif = location.pathname.split('/').pop() || 'index.html';
-  nav.replaceChildren(...sayfalar.map(([adres, ad]) => {
+  const baglanti = ([adres, ad]) => {
     const a = el('a', { href: adres }, ad);
     if (adres === aktif) a.setAttribute('aria-current', 'page');
     return a;
-  }));
+  };
+  nav.replaceChildren(...sayfalar.map(baglanti));
+  api('/ben').then((ben) => {
+    if (ben.rol === 'yonetici') nav.append(baglanti(['yonetim.html', 'Yönetim']));
+  }).catch(() => {});
 });

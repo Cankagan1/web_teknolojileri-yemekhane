@@ -13,6 +13,7 @@ app.use('/api/menu', require('./routes/menu.routes'));
 app.use('/api/rezervasyon', require('./routes/rezervasyon.routes'));
 app.use('/api/bakiye', require('./routes/bakiye.routes'));
 app.use('/api/degerlendirme', require('./routes/degerlendirme.routes'));
+app.use('/api/yonetim', require('./routes/yonetim.routes'));
 app.use('/api', (req, res) => res.status(404).json({ hata: 'Bulunamadı.' }));
 app.use(hataIsleyici);
 
