@@ -1,5 +1,5 @@
-// Ekran: Haftalık menü ve rezervasyon.
-// Düğmenin durumu (eylem) sunucudan gelir; burada iş kuralı yok, yalnızca gösterim.
+// Ekran: Haftalık menü ve rezervasyon (tam / yarım porsiyon).
+// Düğmenin durumu (eylem) ve fiyatlar sunucudan gelir; burada iş kuralı yok, yalnızca gösterim.
 const durum = { yemekhaneler: [], yemekhane: null, baslangic: null, bakiye: 0, adSoyad: '', gunler: [] };
 
 function uyari(mesaj) { document.getElementById('uyari').textContent = mesaj || ''; }
@@ -57,11 +57,18 @@ async function yukle() {
 
 function eylemOgesi(m) {
   switch (m.eylem) {
-    case 'rezerve':    return el('span', { class: 'damga' }, 'Rezerve');
+    case 'rezerve':    return el('span', { class: 'damga' }, m.porsiyon === 'yarim' ? 'Rezerve · yarım' : 'Rezerve');
     case 'kullanildi': return el('span', { class: 'damga kirmizi' }, 'Kullanıldı');
     case 'dolu':       return el('button', { class: 'dugme', type: 'button', disabled: '' }, 'Dolu');
     case 'sure_doldu': return el('button', { class: 'dugme', type: 'button', disabled: '' }, 'Süre doldu');
-    default:           return el('button', { class: 'dugme', type: 'button', onclick: () => rezerveEt(m) }, 'Rezerve et');
+    default:
+      // Yarım porsiyon seçeneği yalnızca sunucu izin veriyorsa (öğle/akşam) gelir
+      if (m.yarimVar) {
+        return el('div', { class: 'porsiyon-dugmeleri' },
+          el('button', { class: 'dugme', type: 'button', onclick: () => rezerveEt(m, 'tam') }, `Tam · ${TL(m.fiyat)}`),
+          el('button', { class: 'dugme ikincil', type: 'button', onclick: () => rezerveEt(m, 'yarim') }, `Yarım · ${TL(m.yarimFiyat)}`));
+      }
+      return el('button', { class: 'dugme', type: 'button', onclick: () => rezerveEt(m, 'tam') }, 'Rezerve et');
   }
 }
 
@@ -82,6 +89,7 @@ function ciz() {
               el('strong', {}, `${m.ogun} · son ${m.sonSaat.slice(0, 5)}`),
               el('span', { class: 'sag' }, TL(m.fiyat))),
             el('div', { class: 'soluk kucuk' }, m.yemekler || ''),
+            m.uyari.length ? el('div', { class: 'menu-uyari' }, `⚠ Alerjen uyarısı: ${m.uyari.join(', ')}`) : '',
             el('div', { class: 'satir' },
               el('span', { class: 'soluk kucuk' }, `${m.toplamKalori} kcal · ${m.bos} boş yer`),
               eylemOgesi(m))
@@ -92,13 +100,14 @@ function ciz() {
   );
 }
 
-async function rezerveEt(m) {
+async function rezerveEt(m, porsiyon) {
   uyari('');
   try {
-    const sonuc = await api('/rezervasyon', { method: 'POST', body: JSON.stringify({ menuId: m.menuId }) });
+    const sonuc = await api('/rezervasyon', { method: 'POST', body: JSON.stringify({ menuId: m.menuId, porsiyon }) });
     // Bakiye prosedürün döndürdüğü (kaynaktan gelen) değerdir; replikadan tekrar okumayız.
     durum.bakiye = sonuc.yeniBakiye;
     m.eylem = 'rezerve';
+    m.porsiyon = porsiyon;
     m.bos -= 1;
     kullaniciYaz();
   } catch (e) { hataIsle(e); }

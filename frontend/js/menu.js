@@ -51,8 +51,14 @@ function fisiCiz(fis, menu, yemekler) {
   const parcalar = [
     el('h1', { class: 'baslik' }, `${menu.yemekhane} · ${menu.ogun}`),
     el('p', { class: 'alt-baslik' }, `${menu.tarih} · Rezervasyon son saati ${menu.sonSaat.slice(0, 5)}`),
-    el('hr', { class: 'kesik' }),
   ];
+
+  // Profildeki alerjenleri içeren menü: üstte genel uyarı
+  if (menu.uyari.length) {
+    parcalar.push(el('div', { class: 'uyari-kutusu', role: 'alert' },
+      `⚠ Bu menü profilinizdeki alerjenleri içeriyor: ${menu.uyari.join(', ')}`));
+  }
+  parcalar.push(el('hr', { class: 'kesik' }));
 
   // yemekler kategori sırasıyla gelir; kategori değişince başlık koy
   let sonKategori = null;
@@ -62,11 +68,15 @@ function fisiCiz(fis, menu, yemekler) {
       sonKategori = y.kategori;
     }
     parcalar.push(el('div', { class: 'satir' }, el('span', {}, y.ad), el('span', { class: 'sag' }, `${y.kalori} kcal`)));
+    if (y.uyari.length) parcalar.push(el('div', { class: 'uyari-satiri' }, `⚠ Alerjen uyarısı: ${y.uyari.join(', ')}`));
   }
 
   parcalar.push(el('hr', { class: 'kesik' }));
   parcalar.push(el('div', { class: 'toplam' }, el('span', {}, 'Toplam'), el('span', {}, `${menu.toplamKalori} kcal`)));
   parcalar.push(el('div', { class: 'toplam' }, el('span', {}, 'Fiyatınız'), el('span', {}, TL(menu.fiyat))));
+  if (menu.yarimPorsiyonVar) {
+    parcalar.push(el('div', { class: 'satir soluk' }, el('span', {}, 'Yarım porsiyon'), el('span', {}, TL(menu.yarimFiyat))));
+  }
   parcalar.push(el('hr', { class: 'kesik' }));
 
   if (menu.vejetaryen) parcalar.push(el('span', { class: 'damga' }, 'Vejetaryen'));

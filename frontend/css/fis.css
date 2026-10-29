@@ -132,3 +132,12 @@ select { width: 100%; padding: 9px; font: inherit; color: inherit; background: t
 .cift-sutun { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .eylemler { display: flex; gap: 8px; margin-top: 16px; }
 .eylemler .dugme { flex: 1; }
+
+/* ---- aşama 4: porsiyon ve alerjen uyarısı ---- */
+.satir { flex-wrap: wrap; }
+.gezinme { flex-wrap: wrap; }
+.gezinme a { flex: 1 0 auto; padding: 8px 6px; }
+.uyari-satiri { color: var(--kirmizi); font-size: .8rem; margin: -2px 0 6px; }
+.uyari-kutusu { border: 2px dashed var(--kirmizi); color: var(--kirmizi); padding: 8px 10px; margin: 12px 0; font-size: .85rem; }
+.porsiyon-dugmeleri { display: flex; gap: 6px; flex-wrap: wrap; }
+.menu-uyari { color: var(--kirmizi); font-size: .78rem; }

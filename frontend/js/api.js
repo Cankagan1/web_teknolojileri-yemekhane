@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const nav = document.getElementById('gezinme');
   if (!nav) return;
   const sayfalar = [['menu.html', 'Bugün'], ['hafta.html', 'Hafta'], ['rezervasyonlarim.html', 'Fişlerim'],
-                    ['bakiye.html', 'Bakiye'], ['degerlendirme.html', 'Puanla']];
+                    ['bakiye.html', 'Bakiye'], ['degerlendirme.html', 'Puanla'], ['profil.html', 'Profil']];
   const aktif = location.pathname.split('/').pop() || 'index.html';
   const baglanti = ([adres, ad]) => {
     const a = el('a', { href: adres }, ad);

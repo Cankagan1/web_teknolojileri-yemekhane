@@ -1,13 +1,15 @@
 const repo = require('../repositories/rezervasyon.repo');
 const { UygulamaHatasi, sarmala } = require('../errors');
 
-// Kurallar (bakiye, kapasite, son saat, mükerrer kayıt) stored procedure'de;
-// burada yalnızca girdi doğrulanır. Prosedürün Türkçe hata mesajı errors.js ile arayüze gider.
+// Kurallar (bakiye, kapasite, son saat, mükerrer kayıt, kahvaltıda yarım porsiyon yok, %60 ücret)
+// stored procedure'de; burada yalnızca girdi doğrulanır. Prosedürün Türkçe hata mesajı arayüze gider.
 const yap = sarmala(async (req, res) => {
   const menuId = Number(req.body && req.body.menuId);
+  const porsiyon = req.body && req.body.porsiyon !== undefined ? String(req.body.porsiyon) : 'tam';
   if (!Number.isInteger(menuId) || menuId < 1) throw new UygulamaHatasi('Geçersiz menü.');
-  const sonuc = await repo.yap(req.kullanici.id, menuId);
-  res.status(201).json({ rezervasyonId: sonuc.rezervasyon_id, yeniBakiye: sonuc.yeni_bakiye });
+  if (!['tam', 'yarim'].includes(porsiyon)) throw new UygulamaHatasi('Geçersiz porsiyon seçimi.');
+  const sonuc = await repo.yap(req.kullanici.id, menuId, porsiyon);
+  res.status(201).json({ rezervasyonId: sonuc.rezervasyon_id, yeniBakiye: sonuc.yeni_bakiye, odenen: sonuc.odenen_tutar });
 });
 
 // Arayüzün göstereceği durum sunucuda belirlenir
@@ -22,6 +24,7 @@ const listele = sarmala(async (req, res) => {
     satirlar.map((r) => ({
       id: r.id,
       durum: r.durum,
+      porsiyon: r.porsiyon,
       eylem: listeEylemi(r),
       tarih: r.tarih,
       ogun: r.ogun,
@@ -29,7 +32,7 @@ const listele = sarmala(async (req, res) => {
       sonSaat: r.sonSaat,
       toplamKalori: r.toplamKalori,
       yemekler: r.yemekler,
-      fiyat: req.kullanici.rol === 'ogrenci' ? r.ogrenciFiyat : r.personelFiyat,
+      fiyat: r.odenen !== null ? r.odenen : (req.kullanici.rol === 'ogrenci' ? r.ogrenciFiyat : r.personelFiyat),
     }))
   );
 });

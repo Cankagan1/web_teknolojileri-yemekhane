@@ -38,4 +38,26 @@ async function menuyuSil(yemekhaneId, tarih, ogunId) {
   }
 }
 
-module.exports = { menuAnahtari, menuGetir, menuYaz, menuyuSil };
+// Açılışta çalışır: Aşama 4 öncesi yapıda (yarimPorsiyonVar alanı olmayan) kayıtları siler.
+// Eski kayıtlar kalırsa arayüz porsiyon seçeneğini göstermez.
+async function eskiYapidakileriTemizle() {
+  let silinen = 0;
+  try {
+    for await (const anahtar of redis.scanIterator({ MATCH: 'menu:*', COUNT: 100 })) {
+      let gecerli = false;
+      try {
+        const veri = JSON.parse(await redis.get(anahtar));
+        gecerli = !!(veri && veri.menu && 'yarimPorsiyonVar' in veri.menu);
+      } catch (e) { gecerli = false; }
+      if (!gecerli) {
+        await redis.del(anahtar);
+        silinen += 1;
+      }
+    }
+    console.log(`[ÖNBELLEK] Eski yapıdaki ${silinen} menü kaydı temizlendi`);
+  } catch (e) {
+    console.error('Eski önbellek temizlenemedi:', e.message);
+  }
+}
+
+module.exports = { menuAnahtari, menuGetir, menuYaz, menuyuSil, eskiYapidakileriTemizle };

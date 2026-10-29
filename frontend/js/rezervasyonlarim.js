@@ -42,7 +42,7 @@ function ciz() {
   const kartlar = gorunen.length
     ? gorunen.map((r) =>
         el('section', { class: 'fis kucuk-fis' + (r.durum === 'iptal' ? ' iptal-fis' : '') },
-          el('div', { class: 'satir' }, el('strong', {}, `${r.yemekhane} · ${r.ogun}`), damga(r)),
+          el('div', { class: 'satir' }, el('strong', {}, `${r.yemekhane} · ${r.ogun}${r.porsiyon === 'yarim' ? ' (yarım)' : ''}`), damga(r)),
           el('div', { class: 'soluk kucuk gun-baslik' }, `${gunAdi(r.tarih)} · son saat ${r.sonSaat.slice(0, 5)}`),
           el('div', { class: 'kucuk' }, r.yemekler || ''),
           el('div', { class: 'satir' },

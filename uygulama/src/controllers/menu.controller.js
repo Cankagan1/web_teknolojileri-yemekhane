@@ -1,5 +1,6 @@
 const repo = require('../repositories/menu.repo');
 const rezRepo = require('../repositories/rezervasyon.repo');
+const profilRepo = require('../repositories/profil.repo');
 const onbellek = require('../onbellek');
 const { UygulamaHatasi, sarmala } = require('../errors');
 
@@ -14,6 +15,7 @@ const referans = sarmala(async (req, res) => {
 });
 
 // Günün menüsü kullanıcıdan bağımsızdır, bu yüzden Redis'te saklanır: menu:{yemekhane}:{tarih}:{ogun}
+// Kullanıcıya özel şeyler (fiyat, alerjen uyarısı) önbelleğe girmez, her istekte eklenir.
 async function menuVerisi(yemekhaneId, tarih, ogunId) {
   const anahtar = onbellek.menuAnahtari(yemekhaneId, tarih, ogunId);
   const saklanan = await onbellek.menuGetir(yemekhaneId, tarih, ogunId);
@@ -30,7 +32,13 @@ async function menuVerisi(yemekhaneId, tarih, ogunId) {
     alerjenler: y.alerjenler ? y.alerjenler.split(',') : [],
   }));
   const veri = {
-    menu: { ...menu, vejetaryen: !!menu.vejetaryen, alerjenler: menu.alerjenler ? menu.alerjenler.split(', ') : [] },
+    menu: {
+      ...menu,
+      vejetaryen: !!menu.vejetaryen,
+      alerjenler: menu.alerjenler ? menu.alerjenler.split(', ') : [],
+      // Aşama 4 ile eklenen alan: bu alanı taşımayan eski önbellek kayıtları açılışta temizlenir
+      yarimPorsiyonVar: menu.yarimOran !== null,
+    },
     yemekler,
   };
   await onbellek.menuYaz(yemekhaneId, tarih, ogunId, veri);
@@ -50,9 +58,20 @@ const gununMenusu = sarmala(async (req, res) => {
   const veri = await menuVerisi(yemekhaneId, tarih, ogunId);
   if (!veri) throw new UygulamaHatasi('Bu öğün için menü bulunamadı.', 404);
 
-  // fiyat, kullanıcının rolüne göre seçilir (önbelleğe girmez, kullanıcıya özeldir)
-  const fiyat = req.kullanici.rol === 'ogrenci' ? veri.menu.ogrenciFiyat : veri.menu.personelFiyat;
-  res.json({ menu: { ...veri.menu, fiyat }, yemekler: veri.yemekler });
+  // Kullanıcıya özel kısım: rol fiyatı ve alerjen uyarıları
+  const ogrenci = req.kullanici.rol === 'ogrenci';
+  const alerjenleri = new Set(await profilRepo.kullaniciAlerjenAdlari(req.kullanici.id));
+  const yemekler = veri.yemekler.map((y) => ({ ...y, uyari: y.alerjenler.filter((a) => alerjenleri.has(a)) }));
+  const m = veri.menu;
+  res.json({
+    menu: {
+      ...m,
+      fiyat: ogrenci ? m.ogrenciFiyat : m.personelFiyat,
+      yarimFiyat: m.yarimPorsiyonVar ? (ogrenci ? m.yarimOgrenciFiyat : m.yarimPersonelFiyat) : null,
+      uyari: m.alerjenler.filter((a) => alerjenleri.has(a)),
+    },
+    yemekler,
+  });
 });
 
 // Düğmenin ne göstereceğine sunucu karar verir; arayüz yalnızca gösterir.
@@ -73,6 +92,8 @@ const haftalik = sarmala(async (req, res) => {
   const menuler = await repo.haftalikMenuler(yemekhaneId, baslangic);
   const rezervasyonlar = await rezRepo.kullanicininRezervasyonlari(req.kullanici.id, menuler.map((m) => m.menuId));
   const rezHaritasi = new Map(rezervasyonlar.map((r) => [r.menuId, r]));
+  const alerjenleri = new Set(await profilRepo.kullaniciAlerjenAdlari(req.kullanici.id));
+  const ogrenci = req.kullanici.rol === 'ogrenci';
 
   // günlere grupla
   const gunler = [];
@@ -82,7 +103,11 @@ const haftalik = sarmala(async (req, res) => {
       ...m,
       gecti: !!m.gecti,
       vejetaryen: !!m.vejetaryen,
-      fiyat: req.kullanici.rol === 'ogrenci' ? m.ogrenciFiyat : m.personelFiyat,
+      fiyat: ogrenci ? m.ogrenciFiyat : m.personelFiyat,
+      yarimVar: m.yarimOgrenciFiyat !== null,
+      yarimFiyat: ogrenci ? m.yarimOgrenciFiyat : m.yarimPersonelFiyat,
+      porsiyon: rez ? rez.porsiyon : null,
+      uyari: (m.alerjenler ? m.alerjenler.split(', ') : []).filter((a) => alerjenleri.has(a)),
       eylem: eylemBelirle(m, rez),
     };
     let gun = gunler[gunler.length - 1];
