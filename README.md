@@ -20,3 +20,6 @@ yonetici@kampus.edu.tr · personel1@kampus.edu.tr · ogrenci01@kampus.edu.tr ...
 ## Mimari (Web API + arayüz)
 route → controller → repository (SQL yalnızca repository'de). Para işlemleri stored procedure ile.
 Yazma ve para hareketleri `mysql-primary`, listeleme `mysql-replica`.
+
+## Temiz kurulum testi
+Proje boş bir klasöre git clone ile çekilip docker compose up -d --build çalıştırıldı. Tüm servisler healthy, replika kurulumu otomatik tamamlandı, 04_degisiklik.sql migration'ı boş kurulumda da uygulandı (31 Ekim 2026).
